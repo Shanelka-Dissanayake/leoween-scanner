@@ -3,7 +3,6 @@
 
 <head>
   <meta charset="UTF-8">
-
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
@@ -20,58 +19,119 @@
       margin: 0;
       min-height: 100vh;
       background:
-        radial-gradient(circle at top, #2b1005 0%, #090909 38%);
+        radial-gradient(circle at top, rgba(255,106,0,.20) 0%, rgba(255,106,0,0) 20%),
+        linear-gradient(180deg, #130805 0%, #090909 35%, #050505 100%);
       color: white;
       font-family: Arial, Helvetica, sans-serif;
+      overflow-x: hidden;
     }
 
     .container {
       width: 100%;
-      max-width: 460px;
+      max-width: 470px;
       margin: auto;
-      padding: 30px 20px 45px;
+      padding: 28px 20px 42px;
+      position: relative;
     }
 
+    /* Decorative elements */
+    .moon {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #fff7d6 0%, #f7d778 50%, #ffad33 100%);
+      box-shadow: 0 0 30px rgba(255, 183, 77, .35);
+      position: absolute;
+      top: 10px;
+      right: 18px;
+      opacity: 0.18;
+      z-index: 0;
+    }
+
+    .bat {
+      position: absolute;
+      color: rgba(255,255,255,.12);
+      font-size: 18px;
+      z-index: 0;
+    }
+
+    .bat1 { top: 34px; left: 28px; transform: rotate(-12deg); }
+    .bat2 { top: 66px; left: 60px; font-size: 14px; }
+    .bat3 { top: 85px; right: 95px; font-size: 14px; }
+
     .header {
+      position: relative;
+      z-index: 1;
       text-align: center;
-      margin-bottom: 28px;
+      margin-bottom: 24px;
+      padding-top: 8px;
     }
 
     .header h1 {
       margin: 0;
-      font-size: 29px;
+      font-size: 31px;
       letter-spacing: 2px;
+      font-weight: 800;
     }
 
     .header p {
       margin: 8px 0 0;
-      color: #999;
+      color: #c1c1c1;
       font-size: 13px;
-      letter-spacing: 1px;
+      letter-spacing: 1.4px;
     }
 
-    .card {
-      background: #141414;
-      border: 1px solid #292929;
-      border-radius: 22px;
+    .tagline {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #ffb15c;
+      letter-spacing: .8px;
+    }
+
+    .card,
+    .scanner-card {
+      position: relative;
+      z-index: 1;
+      background: linear-gradient(180deg, #181818 0%, #121212 100%);
+      border: 1px solid rgba(255, 133, 27, 0.18);
+      border-radius: 24px;
       padding: 24px;
+      box-shadow:
+        0 10px 35px rgba(0,0,0,.35),
+        inset 0 1px 0 rgba(255,255,255,.03);
     }
 
     .card h2 {
       margin-top: 0;
+      margin-bottom: 8px;
+      text-align: center;
+      font-size: 24px;
+    }
+
+    .card p {
+      color: #b8b8b8;
+      text-align: center;
+      margin-bottom: 18px;
+      line-height: 1.5;
     }
 
     input {
       width: 100%;
       padding: 16px;
-      margin-top: 10px;
-      border-radius: 12px;
-      border: 1px solid #444;
-      background: #080808;
+      margin-top: 8px;
+      border-radius: 14px;
+      border: 1px solid #4a3526;
+      background: #0a0a0a;
       color: white;
       font-size: 20px;
       text-align: center;
       letter-spacing: 4px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #ff8f2d;
+      box-shadow: 0 0 0 3px rgba(255,143,45,.12);
     }
 
     button {
@@ -79,20 +139,21 @@
       padding: 16px;
       margin-top: 15px;
       border: 0;
-      border-radius: 12px;
+      border-radius: 14px;
       font-size: 16px;
-      font-weight: 700;
+      font-weight: 800;
       cursor: pointer;
+      letter-spacing: .6px;
     }
 
     .primary {
-      background: #f97316;
+      background: linear-gradient(180deg, #ff8f2d 0%, #f97316 100%);
       color: white;
+      box-shadow: 0 8px 20px rgba(249,115,22,.25);
     }
 
-    .secondary {
-      background: #272727;
-      color: white;
+    .primary:active {
+      transform: translateY(1px);
     }
 
     #scannerPage {
@@ -100,10 +161,7 @@
     }
 
     .scanner-card {
-      background: #141414;
-      padding: 13px;
-      border: 1px solid #292929;
-      border-radius: 24px;
+      padding: 14px;
     }
 
     .camera {
@@ -111,8 +169,9 @@
       width: 100%;
       aspect-ratio: 1 / 1;
       overflow: hidden;
-      border-radius: 18px;
+      border-radius: 20px;
       background: black;
+      border: 1px solid rgba(255,255,255,.05);
     }
 
     #qr-video {
@@ -120,6 +179,14 @@
       height: 100%;
       object-fit: cover;
       display: block;
+    }
+
+    .camera::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      box-shadow: inset 0 0 120px rgba(0,0,0,.25);
+      pointer-events: none;
     }
 
     .scan-frame {
@@ -133,100 +200,118 @@
 
     .corner {
       position: absolute;
-      width: 35px;
-      height: 35px;
+      width: 36px;
+      height: 36px;
+      filter: drop-shadow(0 0 4px rgba(255,136,0,.4));
     }
 
     .tl {
       top: 0;
       left: 0;
-      border-top: 4px solid #f97316;
-      border-left: 4px solid #f97316;
+      border-top: 4px solid #ff8a1f;
+      border-left: 4px solid #ff8a1f;
       border-radius: 10px 0 0 0;
     }
 
     .tr {
       top: 0;
       right: 0;
-      border-top: 4px solid #f97316;
-      border-right: 4px solid #f97316;
+      border-top: 4px solid #ff8a1f;
+      border-right: 4px solid #ff8a1f;
       border-radius: 0 10px 0 0;
     }
 
     .bl {
       bottom: 0;
       left: 0;
-      border-bottom: 4px solid #f97316;
-      border-left: 4px solid #f97316;
+      border-bottom: 4px solid #ff8a1f;
+      border-left: 4px solid #ff8a1f;
       border-radius: 0 0 0 10px;
     }
 
     .br {
       bottom: 0;
       right: 0;
-      border-bottom: 4px solid #f97316;
-      border-right: 4px solid #f97316;
+      border-bottom: 4px solid #ff8a1f;
+      border-right: 4px solid #ff8a1f;
       border-radius: 0 0 10px 0;
     }
 
     .hint {
       text-align: center;
-      color: #999;
+      color: #aaa;
       font-size: 13px;
-      padding: 15px 4px 4px;
+      padding: 15px 4px 6px;
+    }
+
+    .hint strong {
+      color: #ffb15c;
     }
 
     #result {
       display: none;
       margin-top: 18px;
       padding: 25px;
-      border-radius: 20px;
+      border-radius: 22px;
       text-align: center;
+      border: 1px solid transparent;
     }
 
     .checking {
-      background: #292929;
+      background: linear-gradient(180deg, #2a2a2a 0%, #232323 100%);
+      border-color: #444;
     }
 
     .valid {
-      background: #123f25;
-      border: 1px solid #21864a;
+      background: linear-gradient(180deg, #173f25 0%, #12331f 100%);
+      border-color: #2a8e50;
+      box-shadow: 0 10px 20px rgba(18,63,37,.25);
     }
 
     .used {
-      background: #531818;
-      border: 1px solid #a83232;
+      background: linear-gradient(180deg, #5a1b1b 0%, #4a1515 100%);
+      border-color: #c03a3a;
+      box-shadow: 0 10px 20px rgba(90,27,27,.25);
     }
 
     .invalid {
-      background: #531818;
-      border: 1px solid #a83232;
+      background: linear-gradient(180deg, #5a1b1b 0%, #4a1515 100%);
+      border-color: #c03a3a;
+      box-shadow: 0 10px 20px rgba(90,27,27,.25);
     }
 
     .result-title {
-      font-size: 28px;
-      font-weight: 800;
+      font-size: 27px;
+      font-weight: 900;
       margin-bottom: 12px;
+      letter-spacing: .8px;
     }
 
     .ticket-id {
-      font-size: 23px;
-      font-weight: 700;
-      margin-bottom: 8px;
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 10px;
     }
 
     .details {
       font-size: 16px;
-      line-height: 1.6;
+      line-height: 1.65;
+    }
+
+    #nextButton {
+      display: none;
+      margin-top: 16px;
     }
 
     .footer {
       text-align: center;
-      color: #666;
+      color: #6d6d6d;
       font-size: 11px;
       margin-top: 20px;
+      letter-spacing: .8px;
+      position: relative;
+      z-index: 1;
     }
-
   </style>
 </head>
 
@@ -234,20 +319,23 @@
 
 <div class="container">
 
+  <div class="moon"></div>
+  <div class="bat bat1">🦇</div>
+  <div class="bat bat2">🦇</div>
+  <div class="bat bat3">🦇</div>
+
   <div class="header">
     <h1>LEOWEEN 2026</h1>
     <p>ENTRANCE CHECK-IN</p>
+    <div class="tagline">The night is calling... 🎃</div>
   </div>
 
-
   <!-- PIN SCREEN -->
-
   <div id="loginPage" class="card">
-
     <h2>Staff Access</h2>
 
-    <p style="color:#aaa;">
-      Enter the staff PIN to access the ticket scanner.
+    <p>
+      Enter the staff PIN to access the LEO’WEEN ticket scanner.
     </p>
 
     <input
@@ -263,89 +351,59 @@
     >
       OPEN SCANNER
     </button>
-
   </div>
 
-
   <!-- SCANNER -->
-
   <div id="scannerPage">
 
     <div class="scanner-card">
-
       <div class="camera">
-
         <video
           id="qr-video"
           playsinline
         ></video>
 
         <div class="scan-frame">
-
           <div class="corner tl"></div>
           <div class="corner tr"></div>
           <div class="corner bl"></div>
           <div class="corner br"></div>
-
         </div>
-
       </div>
 
       <div class="hint">
-        Place one ticket QR inside the frame
+        Place <strong>one ticket QR</strong> inside the frame
       </div>
-
     </div>
 
-
     <div id="result"></div>
-
 
     <button
       id="nextButton"
       class="primary"
       onclick="scanNext()"
-      style="display:none;"
     >
       SCAN NEXT TICKET
     </button>
-
-
-    <button
-      class="secondary"
-      onclick="changePin()"
-    >
-      CHANGE STAFF PIN
-    </button>
-
   </div>
-
 
   <div class="footer">
-    LEOWEEN 2026 • AUTHORIZED CHECK-IN
+    LEO’WEEN 2026 • AUTHORIZED CHECK-IN
   </div>
-
 </div>
-
 
 <script type="module">
 
   import QrScanner from
     "https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.min.js";
 
-
   const WEB_APP_URL =
     "https://script.google.com/macros/s/AKfycbxtgii9o32uqmq4IHHs39nJPQTXlxA2Yc1r6alPNhpesU5Zzi4dKwT1GYhVb8s0AF0T/exec";
 
-
   let staffPin = "";
-
   let scanner = null;
-
   let processing = false;
-
   let requestTimeout = null;
-
 
   const video =
     document.getElementById("qr-video");
@@ -356,8 +414,6 @@
   const nextButton =
     document.getElementById("nextButton");
 
-
-
   window.openScanner =
     async function() {
 
@@ -367,107 +423,67 @@
           .value
           .trim();
 
-
       if (!pin) {
-
         alert("Enter the staff PIN.");
-
         return;
       }
 
-
       staffPin = pin;
-
 
       document
         .getElementById("loginPage")
         .style.display = "none";
 
-
       document
         .getElementById("scannerPage")
         .style.display = "block";
 
-
       if (!scanner) {
-
         scanner =
           new QrScanner(
-
             video,
-
             function(result) {
 
               if (processing) {
                 return;
               }
 
-
               const qrData =
                 result.data;
-
 
               if (!qrData) {
                 return;
               }
 
-
-              if (
-                !qrData.startsWith(
-                  "LEOWEEN26|"
-                )
-              ) {
-
+              if (!qrData.startsWith("LEOWEEN26|")) {
                 processing = true;
 
                 showResult(
                   "invalid",
                   "✕ INVALID QR",
                   "",
-                  "This is not a LEOWEEN 2026 ticket."
+                  "This is not a LEO’WEEN 2026 ticket."
                 );
 
                 showNextButton();
-
                 return;
               }
 
-
-              verifyTicket(
-                qrData
-              );
-
+              verifyTicket(qrData);
             },
-
             {
-              preferredCamera:
-                "environment",
-
-              maxScansPerSecond:
-                8,
-
-              highlightScanRegion:
-                false,
-
-              highlightCodeOutline:
-                false,
-
-              returnDetailedScanResult:
-                true
+              preferredCamera: "environment",
+              maxScansPerSecond: 8,
+              highlightScanRegion: false,
+              highlightCodeOutline: false,
+              returnDetailedScanResult: true
             }
-
           );
       }
 
-
       try {
-
         await scanner.start();
-
-      }
-
-      catch(error) {
-
+      } catch(error) {
         showResult(
           "invalid",
           "CAMERA ERROR",
@@ -479,12 +495,9 @@
       }
     };
 
-
-
   function verifyTicket(qrData) {
 
     processing = true;
-
 
     showResult(
       "checking",
@@ -493,64 +506,31 @@
       "Verifying ticket"
     );
 
-
-    /*
-      Apps Script JSONP request.
-
-      The PIN is entered by staff at runtime.
-      It is NOT stored in this GitHub file.
-    */
-
-
     const oldScript =
-      document.getElementById(
-        "leoween-api-request"
-      );
-
+      document.getElementById("leoween-api-request");
 
     if (oldScript) {
       oldScript.remove();
     }
 
-
     const script =
       document.createElement("script");
-
 
     script.id =
       "leoween-api-request";
 
-
     const url =
       WEB_APP_URL +
-
       "?mode=api" +
+      "&pin=" + encodeURIComponent(staffPin) +
+      "&qrData=" + encodeURIComponent(qrData) +
+      "&_=" + Date.now();
 
-      "&pin=" +
-      encodeURIComponent(
-        staffPin
-      ) +
-
-      "&qrData=" +
-      encodeURIComponent(
-        qrData
-      ) +
-
-      "&_=" +
-      Date.now();
-
-
-    script.src =
-      url;
-
+    script.src = url;
 
     script.onerror =
       function() {
-
-        clearTimeout(
-          requestTimeout
-        );
-
+        clearTimeout(requestTimeout);
 
         showResult(
           "invalid",
@@ -559,57 +539,36 @@
           "Could not connect to the ticket database."
         );
 
-
         showNextButton();
       };
 
-
-    document.body.appendChild(
-      script
-    );
-
+    document.body.appendChild(script);
 
     requestTimeout =
-      setTimeout(
-        function() {
+      setTimeout(function() {
 
-          if (!processing) {
-            return;
-          }
+        if (!processing) {
+          return;
+        }
 
+        showResult(
+          "invalid",
+          "CONNECTION TIMEOUT",
+          "",
+          "The ticket server did not respond."
+        );
 
-          showResult(
-            "invalid",
-            "CONNECTION TIMEOUT",
-            "",
-            "The ticket server did not respond."
-          );
+        showNextButton();
 
-
-          showNextButton();
-
-        },
-        10000
-      );
+      }, 10000);
   }
-
-
-
-  /*
-    Apps Script calls this function
-    after checking the ticket.
-  */
 
   window.handleLeoweenResult =
     function(result) {
 
-      clearTimeout(
-        requestTimeout
-      );
-
+      clearTimeout(requestTimeout);
 
       if (!result) {
-
         showResult(
           "invalid",
           "SYSTEM ERROR",
@@ -618,56 +577,31 @@
         );
 
         showNextButton();
-
         return;
       }
 
-
-
-      if (
-        result.type ===
-        "VALID"
-      ) {
-
+      if (result.type === "VALID") {
         navigator.vibrate?.(150);
-
 
         showResult(
           "valid",
           "✓ VALID",
           result.ticketId,
-          result.guestName +
-          "\n" +
-          result.ticketType
+          result.guestName + "\n" + result.ticketType
         );
-
       }
 
-
-
-      else if (
-        result.type ===
-        "USED"
-      ) {
-
-        navigator.vibrate?.(
-          [150, 100, 150]
-        );
-
+      else if (result.type === "USED") {
+        navigator.vibrate?.([150, 100, 150]);
 
         let details =
           result.guestName;
 
-
-        if (
-          result.checkInTime
-        ) {
-
+        if (result.checkInTime) {
           details +=
             "\n\nPreviously checked in:\n" +
             result.checkInTime;
         }
-
 
         showResult(
           "used",
@@ -675,191 +609,85 @@
           result.ticketId,
           details
         );
-
       }
 
-
-
-      else if (
-        result.type ===
-        "AUTH_ERROR"
-      ) {
-
+      else if (result.type === "AUTH_ERROR") {
         showResult(
           "invalid",
           "✕ WRONG PIN",
           "",
           "The staff PIN is incorrect."
         );
-
       }
 
-
-
       else {
-
         showResult(
           "invalid",
           "✕ INVALID TICKET",
           "",
-          result.message ||
-          "Ticket could not be verified."
+          result.message || "Ticket could not be verified."
         );
-
       }
-
 
       showNextButton();
     };
 
+  function showResult(cssClass, title, ticketId, details) {
 
-
-  function showResult(
-    cssClass,
-    title,
-    ticketId,
-    details
-  ) {
-
-    resultBox.style.display =
-      "block";
-
-
-    resultBox.className =
-      cssClass;
-
-
-    resultBox.innerHTML =
-      "";
-
+    resultBox.style.display = "block";
+    resultBox.className = cssClass;
+    resultBox.innerHTML = "";
 
     const titleElement =
-      document.createElement(
-        "div"
-      );
-
+      document.createElement("div");
 
     titleElement.className =
       "result-title";
 
-
     titleElement.textContent =
       title;
 
-
-    resultBox.appendChild(
-      titleElement
-    );
-
-
+    resultBox.appendChild(titleElement);
 
     if (ticketId) {
-
       const ticketElement =
-        document.createElement(
-          "div"
-        );
-
+        document.createElement("div");
 
       ticketElement.className =
         "ticket-id";
 
-
       ticketElement.textContent =
         ticketId;
 
-
-      resultBox.appendChild(
-        ticketElement
-      );
+      resultBox.appendChild(ticketElement);
     }
 
-
-
     if (details) {
-
       const detailElement =
-        document.createElement(
-          "div"
-        );
-
+        document.createElement("div");
 
       detailElement.className =
         "details";
 
-
       detailElement.style.whiteSpace =
         "pre-line";
-
 
       detailElement.textContent =
         details;
 
-
-      resultBox.appendChild(
-        detailElement
-      );
+      resultBox.appendChild(detailElement);
     }
   }
 
-
-
   function showNextButton() {
-
-    nextButton.style.display =
-      "block";
+    nextButton.style.display = "block";
   }
-
-
 
   window.scanNext =
     function() {
-
       processing = false;
-
-
-      resultBox.style.display =
-        "none";
-
-
-      nextButton.style.display =
-        "none";
-    };
-
-
-
-  window.changePin =
-    function() {
-
-      staffPin = "";
-
-      processing = false;
-
-
-      scanner?.stop();
-
-
-      document
-        .getElementById("scannerPage")
-        .style.display = "none";
-
-
-      document
-        .getElementById("loginPage")
-        .style.display = "block";
-
-
-      document
-        .getElementById("pin")
-        .value = "";
-
-
-      resultBox.style.display =
-        "none";
-
-
-      nextButton.style.display =
-        "none";
+      resultBox.style.display = "none";
+      nextButton.style.display = "none";
     };
 
 </script>
