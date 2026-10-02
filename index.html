@@ -34,7 +34,6 @@
       position: relative;
     }
 
-    /* Decorative elements */
     .moon {
       width: 72px;
       height: 72px;
@@ -330,7 +329,6 @@
     <div class="tagline">The night is calling... 🎃</div>
   </div>
 
-  <!-- PIN SCREEN -->
   <div id="loginPage" class="card">
     <h2>Staff Access</h2>
 
@@ -353,7 +351,6 @@
     </button>
   </div>
 
-  <!-- SCANNER -->
   <div id="scannerPage">
 
     <div class="scanner-card">
@@ -583,11 +580,22 @@
       if (result.type === "VALID") {
         navigator.vibrate?.(150);
 
+        let details =
+          result.guestName +
+          "\n" +
+          result.ticketType;
+
+        if (result.leoCategory) {
+          details +=
+            " • " +
+            result.leoCategory;
+        }
+
         showResult(
           "valid",
           "✓ VALID",
           result.ticketId,
-          result.guestName + "\n" + result.ticketType
+          details
         );
       }
 
@@ -595,7 +603,15 @@
         navigator.vibrate?.([150, 100, 150]);
 
         let details =
-          result.guestName;
+          result.guestName +
+          "\n" +
+          result.ticketType;
+
+        if (result.leoCategory) {
+          details +=
+            " • " +
+            result.leoCategory;
+        }
 
         if (result.checkInTime) {
           details +=
