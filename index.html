@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <title>LEOWEEN 2026 Check-In</title>
+
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #0b0b0b;
+      color: #ffffff;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 520px;
+      margin: auto;
+      padding: 24px 18px 40px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: 1px;
+    }
+
+    .header p {
+      color: #999;
+      margin-top: 7px;
+    }
+
+    .card {
+      background: #151515;
+      border: 1px solid #292929;
+      border-radius: 18px;
+      padding: 22px;
+    }
+
+    input {
+      width: 100%;
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid #444;
+      background: #090909;
+      color: white;
+      font-size: 18px;
+      margin-top: 12px;
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      margin-top: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .primary {
+      background: #f97316;
+      color: white;
+    }
+
+    #scannerPage {
+      display: none;
+    }
+
+    #reader {
+      width: 100%;
+      overflow: hidden;
+      border-radius: 16px;
+      background: white;
+    }
+
+    #status {
+      display: none;
+      margin-top: 18px;
+      padding: 25px 18px;
+      border-radius: 16px;
+      text-align: center;
+    }
+
+    .valid {
+      background: #166534;
+    }
+
+    .used {
+      background: #991b1b;
+    }
+
+    .invalid {
+      background: #7f1d1d;
+    }
+
+    .checking {
+      background: #333;
+    }
+
+    .big {
+      font-size: 30px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .ticketId {
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 8px;
+    }
+
+    .details {
+      line-height: 1.7;
+      margin-top: 8px;
+    }
+
+    .small {
+      font-size: 13px;
+      color: #999;
+      margin-top: 16px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <h1>LEOWEEN 2026</h1>
+    <p>Entrance Check-In</p>
+  </div>
+
+
+  <!-- LOGIN -->
+
+  <div id="loginPage" class="card">
+
+    <h2>Staff Access</h2>
+
+    <p>Enter the check-in PIN.</p>
+
+    <input
+      type="password"
+      id="pin"
+      inputmode="numeric"
+      placeholder="Staff PIN"
+    >
+
+    <button class="primary" onclick="startScanner()">
+      Open Scanner
+    </button>
+
+  </div>
+
+
+  <!-- SCANNER -->
+
+  <div id="scannerPage">
+
+    <div id="reader"></div>
+
+    <div id="status"></div>
+
+    <div class="small">
+      Each QR code can be successfully checked in once only.
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- Hidden receiver for Apps Script POST -->
+
+<iframe
+  name="apiFrame"
+  id="apiFrame"
+  style="display:none;">
+</iframe>
+
+
+<form
+  id="apiForm"
+  method="POST"
+  target="apiFrame"
+  style="display:none;">
+
+  <input type="hidden" name="pin" id="formPin">
+  <input type="hidden" name="qrData" id="formQrData">
+
+</form>
+
+
+<script>
+
+  const WEB_APP_URL =
+    "https://script.google.com/macros/s/AKfycbxtgii9o32uqmq4IHHs39nJPQTXlxA2Yc1r6alPNhpesU5Zzi4dKwT1GYhVb8s0AF0T/exec";
+
+
+  let staffPin = "";
+  let processing = false;
+  let scannerStarted = false;
+
+
+  const statusBox =
+    document.getElementById("status");
+
+
+  function startScanner() {
+
+    const pin =
+      document.getElementById("pin").value.trim();
+
+    if (!pin) {
+      alert("Enter the staff PIN.");
+      return;
+    }
+
+    staffPin = pin;
+
+    document.getElementById("loginPage")
+      .style.display = "none";
+
+    document.getElementById("scannerPage")
+      .style.display = "block";
+
+    startCamera();
+  }
+
+
+  function startCamera() {
+
+    if (scannerStarted) return;
+
+    scannerStarted = true;
+
+    const html5QrCode =
+      new Html5Qrcode("reader");
+
+    html5QrCode.start(
+      {
+        facingMode: "environment"
+      },
+      {
+        fps: 10,
+        qrbox: {
+          width: 250,
+          height: 250
+        }
+      },
+      onScanSuccess,
+      function () {
+        // Ignore normal scanning failures
+      }
+    )
+    .catch(function(error) {
+
+      showMessage(
+        "invalid",
+        "CAMERA ERROR",
+        "",
+        "Camera access failed. Please allow camera permission."
+      );
+
+      console.error(error);
+    });
+  }
+
+
+  function onScanSuccess(decodedText) {
+
+    if (processing) return;
+
+    processing = true;
+
+    showMessage(
+      "checking",
+      "CHECKING...",
+      "",
+      "Verifying ticket"
+    );
+
+    document.getElementById("formPin").value =
+      staffPin;
+
+    document.getElementById("formQrData").value =
+      decodedText;
+
+    const form =
+      document.getElementById("apiForm");
+
+    form.action = WEB_APP_URL;
+
+    form.submit();
+  }
+
+
+  window.addEventListener(
+    "message",
+    function(event) {
+
+      const result = event.data;
+
+      if (
+        !result ||
+        result.source !== "LEOWEEN_API"
+      ) {
+        return;
+      }
+
+
+      if (result.type === "VALID") {
+
+        showMessage(
+          "valid",
+          "✓ VALID",
+          result.ticketId,
+          result.guestName +
+          " • " +
+          result.ticketType
+        );
+
+      }
+
+      else if (result.type === "USED") {
+
+        let info =
+          result.guestName +
+          " • " +
+          result.ticketType;
+
+        if (result.checkInTime) {
+          info +=
+            "\nPreviously checked in: " +
+            result.checkInTime;
+        }
+
+        showMessage(
+          "used",
+          "✕ ALREADY USED",
+          result.ticketId,
+          info
+        );
+
+      }
+
+      else if (result.type === "AUTH_ERROR") {
+
+        showMessage(
+          "invalid",
+          "✕ WRONG PIN",
+          "",
+          "Staff PIN is incorrect."
+        );
+
+      }
+
+      else {
+
+        showMessage(
+          "invalid",
+          "✕ INVALID",
+          "",
+          result.message ||
+          "Ticket could not be verified."
+        );
+      }
+
+
+      setTimeout(function() {
+
+        statusBox.style.display = "none";
+
+        processing = false;
+
+      }, 3500);
+
+    }
+  );
+
+
+  function showMessage(
+    cssClass,
+    title,
+    ticketId,
+    details
+  ) {
+
+    statusBox.className = cssClass;
+    statusBox.style.display = "block";
+
+    statusBox.innerHTML = "";
+
+    const titleElement =
+      document.createElement("div");
+
+    titleElement.className = "big";
+    titleElement.textContent = title;
+
+    statusBox.appendChild(titleElement);
+
+
+    if (ticketId) {
+
+      const ticketElement =
+        document.createElement("div");
+
+      ticketElement.className = "ticketId";
+      ticketElement.textContent = ticketId;
+
+      statusBox.appendChild(ticketElement);
+    }
+
+
+    if (details) {
+
+      const detailsElement =
+        document.createElement("div");
+
+      detailsElement.className = "details";
+      detailsElement.style.whiteSpace =
+        "pre-line";
+
+      detailsElement.textContent = details;
+
+      statusBox.appendChild(detailsElement);
+    }
+  }
+
+</script>
+
+</body>
+</html>
