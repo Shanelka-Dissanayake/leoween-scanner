@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+  >
 
   <title>LEOWEEN 2026 Check-In</title>
-
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
   <style>
     * {
@@ -18,7 +19,7 @@
       margin: 0;
       min-height: 100vh;
       background: #0b0b0b;
-      color: #ffffff;
+      color: white;
       font-family: Arial, Helvetica, sans-serif;
     }
 
@@ -31,18 +32,17 @@
 
     .header {
       text-align: center;
-      margin-bottom: 25px;
+      margin-bottom: 24px;
     }
 
     .header h1 {
       margin: 0;
       font-size: 28px;
-      letter-spacing: 1px;
     }
 
     .header p {
-      color: #999;
       margin-top: 7px;
+      color: #999;
     }
 
     .card {
@@ -55,23 +55,22 @@
     input {
       width: 100%;
       padding: 16px;
+      margin-top: 12px;
       border-radius: 10px;
       border: 1px solid #444;
       background: #090909;
       color: white;
       font-size: 18px;
-      margin-top: 12px;
     }
 
     button {
       width: 100%;
       padding: 16px;
       margin-top: 14px;
-      border: none;
+      border: 0;
       border-radius: 10px;
       font-size: 17px;
       font-weight: bold;
-      cursor: pointer;
     }
 
     .primary {
@@ -83,11 +82,19 @@
       display: none;
     }
 
-    #reader {
+    .video-wrap {
+      position: relative;
       width: 100%;
       overflow: hidden;
-      border-radius: 16px;
-      background: white;
+      border-radius: 18px;
+      background: black;
+    }
+
+    #qr-video {
+      width: 100%;
+      min-height: 380px;
+      object-fit: cover;
+      display: block;
     }
 
     #status {
@@ -129,13 +136,14 @@
     .details {
       line-height: 1.7;
       margin-top: 8px;
+      white-space: pre-line;
     }
 
     .small {
-      font-size: 13px;
-      color: #999;
-      margin-top: 16px;
       text-align: center;
+      color: #999;
+      font-size: 13px;
+      margin-top: 16px;
     }
   </style>
 </head>
@@ -148,9 +156,6 @@
     <h1>LEOWEEN 2026</h1>
     <p>Entrance Check-In</p>
   </div>
-
-
-  <!-- LOGIN -->
 
   <div id="loginPage" class="card">
 
@@ -165,31 +170,33 @@
       placeholder="Staff PIN"
     >
 
-    <button class="primary" onclick="startScanner()">
+    <button
+      class="primary"
+      onclick="openScanner()"
+    >
       Open Scanner
     </button>
 
   </div>
 
-
-  <!-- SCANNER -->
-
   <div id="scannerPage">
 
-    <div id="reader"></div>
+    <div class="video-wrap">
+      <video
+        id="qr-video"
+        playsinline
+      ></video>
+    </div>
 
     <div id="status"></div>
 
     <div class="small">
-      Each QR code can be successfully checked in once only.
+      Hold the QR steady inside the camera view.
     </div>
 
   </div>
 
 </div>
-
-
-<!-- Hidden receiver for Apps Script POST -->
 
 <iframe
   name="apiFrame"
@@ -197,20 +204,31 @@
   style="display:none;">
 </iframe>
 
-
 <form
   id="apiForm"
   method="POST"
   target="apiFrame"
   style="display:none;">
 
-  <input type="hidden" name="pin" id="formPin">
-  <input type="hidden" name="qrData" id="formQrData">
+  <input
+    type="hidden"
+    name="pin"
+    id="formPin"
+  >
+
+  <input
+    type="hidden"
+    name="qrData"
+    id="formQrData"
+  >
 
 </form>
 
+<script type="module">
 
-<script>
+  import QrScanner
+    from "https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.min.js";
+
 
   const WEB_APP_URL =
     "https://script.google.com/macros/s/AKfycbxtgii9o32uqmq4IHHs39nJPQTXlxA2Yc1r6alPNhpesU5Zzi4dKwT1GYhVb8s0AF0T/exec";
@@ -218,17 +236,22 @@
 
   let staffPin = "";
   let processing = false;
-  let scannerStarted = false;
+  let scanner = null;
 
 
   const statusBox =
     document.getElementById("status");
 
+  const video =
+    document.getElementById("qr-video");
 
-  function startScanner() {
+
+  window.openScanner = async function () {
 
     const pin =
-      document.getElementById("pin").value.trim();
+      document.getElementById("pin")
+      .value
+      .trim();
 
     if (!pin) {
       alert("Enter the staff PIN.");
@@ -237,58 +260,70 @@
 
     staffPin = pin;
 
-    document.getElementById("loginPage")
+    document
+      .getElementById("loginPage")
       .style.display = "none";
 
-    document.getElementById("scannerPage")
+    document
+      .getElementById("scannerPage")
       .style.display = "block";
 
-    startCamera();
-  }
 
+    scanner = new QrScanner(
 
-  function startCamera() {
+      video,
 
-    if (scannerStarted) return;
+      function (result) {
 
-    scannerStarted = true;
+        if (processing) return;
 
-    const html5QrCode =
-      new Html5Qrcode("reader");
+        const decodedText =
+          result.data;
 
-    html5QrCode.start(
-      {
-        facingMode: "environment"
+        processTicket(decodedText);
       },
+
       {
-        fps: 10,
-        qrbox: {
-          width: 250,
-          height: 250
-        }
-      },
-      onScanSuccess,
-      function () {
-        // Ignore normal scanning failures
+        preferredCamera: "environment",
+
+        maxScansPerSecond: 10,
+
+        highlightScanRegion: true,
+
+        highlightCodeOutline: true,
+
+        returnDetailedScanResult: true
       }
-    )
-    .catch(function(error) {
+    );
+
+
+    try {
+
+      await scanner.start();
+
+    }
+
+    catch (error) {
 
       showMessage(
         "invalid",
         "CAMERA ERROR",
         "",
-        "Camera access failed. Please allow camera permission."
+        "Camera could not be started."
       );
 
       console.error(error);
-    });
-  }
+    }
+  };
 
 
-  function onScanSuccess(decodedText) {
+  function processTicket(decodedText) {
 
-    if (processing) return;
+    if (!decodedText) return;
+
+    if (!decodedText.startsWith("LEOWEEN26|")) {
+      return;
+    }
 
     processing = true;
 
@@ -299,16 +334,24 @@
       "Verifying ticket"
     );
 
-    document.getElementById("formPin").value =
-      staffPin;
 
-    document.getElementById("formQrData").value =
-      decodedText;
+    document
+      .getElementById("formPin")
+      .value = staffPin;
+
+
+    document
+      .getElementById("formQrData")
+      .value = decodedText;
+
 
     const form =
       document.getElementById("apiForm");
 
-    form.action = WEB_APP_URL;
+
+    form.action =
+      WEB_APP_URL;
+
 
     form.submit();
   }
@@ -316,9 +359,11 @@
 
   window.addEventListener(
     "message",
-    function(event) {
+    function (event) {
 
-      const result = event.data;
+      const result =
+        event.data;
+
 
       if (
         !result ||
@@ -338,8 +383,8 @@
           " • " +
           result.ticketType
         );
-
       }
+
 
       else if (result.type === "USED") {
 
@@ -348,11 +393,14 @@
           " • " +
           result.ticketType;
 
+
         if (result.checkInTime) {
+
           info +=
             "\nPreviously checked in: " +
             result.checkInTime;
         }
+
 
         showMessage(
           "used",
@@ -360,10 +408,12 @@
           result.ticketId,
           info
         );
-
       }
 
-      else if (result.type === "AUTH_ERROR") {
+
+      else if (
+        result.type === "AUTH_ERROR"
+      ) {
 
         showMessage(
           "invalid",
@@ -371,8 +421,8 @@
           "",
           "Staff PIN is incorrect."
         );
-
       }
+
 
       else {
 
@@ -386,14 +436,17 @@
       }
 
 
-      setTimeout(function() {
+      setTimeout(
+        function () {
 
-        statusBox.style.display = "none";
+          statusBox.style.display =
+            "none";
 
-        processing = false;
+          processing = false;
 
-      }, 3500);
-
+        },
+        3500
+      );
     }
   );
 
@@ -405,29 +458,43 @@
     details
   ) {
 
-    statusBox.className = cssClass;
-    statusBox.style.display = "block";
+    statusBox.className =
+      cssClass;
+
+    statusBox.style.display =
+      "block";
 
     statusBox.innerHTML = "";
+
 
     const titleElement =
       document.createElement("div");
 
-    titleElement.className = "big";
-    titleElement.textContent = title;
+    titleElement.className =
+      "big";
 
-    statusBox.appendChild(titleElement);
+    titleElement.textContent =
+      title;
+
+    statusBox.appendChild(
+      titleElement
+    );
 
 
     if (ticketId) {
 
-      const ticketElement =
+      const idElement =
         document.createElement("div");
 
-      ticketElement.className = "ticketId";
-      ticketElement.textContent = ticketId;
+      idElement.className =
+        "ticketId";
 
-      statusBox.appendChild(ticketElement);
+      idElement.textContent =
+        ticketId;
+
+      statusBox.appendChild(
+        idElement
+      );
     }
 
 
@@ -436,13 +503,15 @@
       const detailsElement =
         document.createElement("div");
 
-      detailsElement.className = "details";
-      detailsElement.style.whiteSpace =
-        "pre-line";
+      detailsElement.className =
+        "details";
 
-      detailsElement.textContent = details;
+      detailsElement.textContent =
+        details;
 
-      statusBox.appendChild(detailsElement);
+      statusBox.appendChild(
+        detailsElement
+      );
     }
   }
 
